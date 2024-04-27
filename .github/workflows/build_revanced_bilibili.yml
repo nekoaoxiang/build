@@ -56,13 +56,13 @@ jobs:
         unzip bilibili.zip
         rm -rf bilibili.zip
         cd ..
-        java -jar APKEditor.jar m -i ./temp
+        java -jar APKEditor*.jar m -i ./temp
         mv *.apk ../build/bilibili.apk
 
     - name: Build bilibili
       run: |
         cd build
-        java -jar revanced-cli.jar patch --merge integrations.apk --patch-bundle patches.jar --signing-levels 2,3 bilibili.apk
+        java -jar revanced-cli.jar patch --merge integrations*.apk --patch-bundle patches*.jar --signing-levels 2,3 bilibili.apk
 
     - name: Upload bilibili
       uses: actions/upload-artifact@v4
