@@ -14,20 +14,31 @@ jobs:
         repository: BiliRoamingX/BiliRoamingX
         ref: main
         path: BiliRoamingX
+        fetch-depth: 0
 
     - name: Setup Java 
       uses: actions/setup-java@v4
       with:
-        java-version: '21'
+        java-version: '22'
         distribution: 'oracle'
 
     - name: Setup Gradle
       uses: gradle/actions/setup-gradle@v3
-    
-    - name: Build BiliRoamingX
+
+    - name: Retrieve version
       run: |
         cd BiliRoamingX
-        ./gradlew dist
+        version=`awk -F "=" '$1 == "version" {print $2}' gradle.properties`
+        commit_count=`git rev-list main --count`
+        version="${version}.r${commit_count}"
+        echo "VERSION=$version" >> $GITHUB_ENV
+
+    - name: Build BiliRoamingX
+      env:
+        GITHUB_TOKEN: ${{ github.token }}
+      run: |
+        cd BiliRoamingX
+        ./gradlew --no-daemon -Pversion=$VERSION dist
         
     - name: Move to specified directory
       run: |
@@ -54,7 +65,7 @@ jobs:
         java -jar revanced-cli.jar patch --merge integrations.apk --patch-bundle patches.jar --signing-levels 2,3 bilibili.apk
 
     - name: Upload bilibili
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: bilibili
         path: "./build"
