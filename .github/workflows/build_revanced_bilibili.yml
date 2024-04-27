@@ -1,0 +1,52 @@
+name: Build Revanced bilibili
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      with:
+        repository: BiliRoamingX/BiliRoamingX
+        ref: main
+        path: BiliRoamingX
+
+    - name: Setup Java 
+      uses: actions/setup-java@v4
+      with:
+        java-version: '21'
+        distribution: 'oracle'
+
+    - name: Setup Gradle
+      uses: gradle/actions/setup-gradle@v3
+    
+    - name: Build BiliRoamingX
+      run: |
+        cd BiliRoamingX
+        ./gradlew dist
+        
+    - name: Move to specified directory
+      run: |
+        mv ./BiliRoamingX/build .
+        wget https://github.com/zjns/revanced-cli/releases/download/v4.6.0.1/revanced-cli.jar
+
+    - name: Prepare bilibili apk
+      run: |
+        mkdir apk-jar
+        cd apk-jar
+        wget https://github.com/REAndroid/APKEditor/releases/download/V1.3.7/APKEditor-1.3.7.jar
+
+    - name: Build bilibili
+      run: |
+        cd build
+        java -jar revanced-cli.jar patch --merge integrations.apk --patch-bundle patches.jar --signing-levels 2,3 bilibili.apk
+
+    - name: Upload bilibili
+      uses: actions/upload-artifact@v3
+      with:
+        name: bilibili
+        path: "./build"
