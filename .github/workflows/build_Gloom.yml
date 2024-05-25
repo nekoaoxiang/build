@@ -13,7 +13,7 @@ jobs:
       with:
         repository: MateriiApps/Gloom
         ref: main
-        path: main
+        path: Gloom
         fetch-depth: 0
 
     - name: Setup Java 
