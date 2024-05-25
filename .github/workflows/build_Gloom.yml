@@ -1,0 +1,39 @@
+name: Build Gloom
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      with:
+        repository: MateriiApps/Gloom
+        ref: main
+        path: main
+        fetch-depth: 0
+
+    - name: Setup Java 
+      uses: actions/setup-java@v4
+      with:
+        java-version: '22'
+        distribution: 'oracle'
+
+    - name: Setup Gradle
+      uses: gradle/actions/setup-gradle@v3
+
+    - name: Build Gloom
+      env:
+        GITHUB_TOKEN: ${{ github.token }}
+      run: |
+        cd Gloom
+        chmod +x ./gradlew && gradlew assembleDebug
+
+    - name: Upload Gloom
+      uses: actions/upload-artifact@v4
+      with:
+        name: Gloom
+        path: "app/build/outputs/apk/debug/app-debug.apk"
