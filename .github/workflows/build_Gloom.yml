@@ -30,10 +30,10 @@ jobs:
         GITHUB_TOKEN: ${{ github.token }}
       run: |
         cd Gloom
-        chmod +x ./gradlew && ./gradlew assembleDebug
+        chmod +x ./gradlew && ./gradlew assembleDebug --no-daemon
 
     - name: Upload Gloom
       uses: actions/upload-artifact@v4
       with:
         name: Gloom
-        path: "app/build/outputs/apk/debug/app-debug.apk"
+        path: "./Gloom/app/build/outputs/apk/debug/app-debug.apk"
