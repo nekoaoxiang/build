@@ -23,9 +23,20 @@ jobs:
         keytool -genkeypair -alias my-key-alias -keyalg RSA -keysize 2048 -validity 10000 -keystore my-release-key.jks -storepass 12345678 -keypass 12345678 -dname "CN="", OU="", O="", L="", S="", C="""
         apksigner sign --ks my-release-key.jks --ks-pass pass:12345678 --key-pass pass:12345678 --out bilibili-signed.apk bilibili.apk
 
+    - name: check apk
+      run: |
+        zipinfo bilibili-signed.apk
+
+        unzip bilibili-signed.apk -d temp_dir
+        cd temp_dir
+        zip -r ../bilibili-signed-fixed.apk *
+        cd ..
+
+        zipinfo bilibili-signed-fixed.apk
+
     - name: Build bilibili
       run: |
-        java -jar revanced-cli.jar patch --merge BiliRoamingX-integrations*.apk --patch-bundle BiliRoamingX-patches*.jar --signing-levels 3 bilibili-signed.apk
+        java -jar revanced-cli.jar patch --merge BiliRoamingX-integrations*.apk --patch-bundle BiliRoamingX-patches*.jar --signing-levels 3 bilibili-signed-fixed.apk
 
     - name: Upload bilibili
       uses: actions/upload-artifact@v4
