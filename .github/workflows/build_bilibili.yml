@@ -25,14 +25,10 @@ jobs:
 
     - name: check apk
       run: |
-        zipinfo bilibili-signed.apk
-
-        unzip bilibili-signed.apk -d temp_dir
+        sudo unzip bilibili-signed.apk -d temp_dir
         cd temp_dir
-        zip -r ../bilibili-signed-fixed.apk *
+        sudo zip -r ../bilibili-signed-fixed.apk *
         cd ..
-
-        zipinfo bilibili-signed-fixed.apk
 
     - name: Build bilibili
       run: |
