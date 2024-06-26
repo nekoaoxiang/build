@@ -8,15 +8,24 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+    - name: Install SDK
+      run: |
+        sudo apt install android-sdk
     - name: download file
       run: |
         wget -qq https://github.com/BiliRoamingX/BiliRoamingX/releases/download/v1.22.4/BiliRoamingX-integrations-1.22.4.apk
         wget -qq https://github.com/BiliRoamingX/BiliRoamingX/releases/download/v1.22.4/BiliRoamingX-patches-1.22.4.jar
         wget -qq https://github.com/zjns/revanced-cli/releases/download/v4.6.0.1/revanced-cli.jar
         wget -qq https://github.com/nekoaoxiang/build/releases/download/3.19.2/bilibili.apk
+
+    - name: sign
+      run: |
+        keytool -genkeypair -alias my-key-alias -keyalg RSA -keysize 2048 -validity 10000 -keystore my-release-key.jks -storepass 12345678 -keypass 12345678 -dname "CN="", OU="", O="", L="", S="", C="""
+        apksigner sign --ks my-release-key.jks --ks-pass pass:12345678 --key-pass pass:12345678 --out bilibili-signed.apk bilibili.apk
+
     - name: Build bilibili
       run: |
-        java -jar revanced-cli.jar patch --merge BiliRoamingX-integrations*.apk --patch-bundle BiliRoamingX-patches*.jar --signing-levels 3 bilibili.apk
+        java -jar revanced-cli.jar patch --merge BiliRoamingX-integrations*.apk --patch-bundle BiliRoamingX-patches*.jar --signing-levels 3 bilibili-signed.apk
 
     - name: Upload bilibili
       uses: actions/upload-artifact@v4
