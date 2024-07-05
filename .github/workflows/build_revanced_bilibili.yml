@@ -86,11 +86,18 @@ jobs:
         DOWNLOAD_URL=$(echo "$RELEASE_DATA" | grep '"browser_download_url":' | grep 'BiliRoamingX-patches' | head -n 1 | awk -F '"' '{print $4}')
         wget -qq $DOWNLOAD_URL
 
+    - name: Prepare apk
+      run: |
+        sudo apt install android-sdk
+        wget -qq https://github.com/nekoaoxiang/build/releases/latest/download/bilibili.apk
+        mkdir build
+        wget -qq https://github.com/nekoaoxiang/build/releases/latest/download/my-release-key.jks
+        apksigner sign --ks my-release-key.jks --ks-pass pass:12345678 --key-pass pass:12345678 --out ./bilibili-signed.apk ./bilibili.apk
+
     - name: check apk
       run: |
-        wget -qq https://github.com/nekoaoxiang/build/releases/latest/download/bilibili.apk
-        sudo unzip bilibili.apk -d temp_dir
-        mkdir build && cd temp_dir
+        sudo unzip bilibili-signed.apk -d temp_dir
+        cd temp_dir
         sudo zip -r ../build/bilibili.apk *
 
     - name: Build bilibili
