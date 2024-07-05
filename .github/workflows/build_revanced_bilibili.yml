@@ -87,7 +87,7 @@ jobs:
         wget -qq $DOWNLOAD_URL
 
     - name: Prepare apk
-      run:|
+      run: |
         sudo apt install android-sdk
         wget -qq https://github.com/nekoaoxiang/build/releases/latest/download/bilibili.apk
         mkdir build
