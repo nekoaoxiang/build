@@ -86,23 +86,10 @@ jobs:
         DOWNLOAD_URL=$(echo "$RELEASE_DATA" | grep '"browser_download_url":' | grep 'BiliRoamingX-patches' | head -n 1 | awk -F '"' '{print $4}')
         wget -qq $DOWNLOAD_URL
 
-    - name: Prepare bilibili apk
-      run: |
-        RELEASE_DATA=$(curl -s "https://api.github.com/repos/REAndroid/APKEditor/releases/latest")
-        DOWNLOAD_URL=$(echo "$RELEASE_DATA" | grep '"browser_download_url":' | grep 'APKEditor' | head -n 1 | awk -F '"' '{print $4}')
-
-        mkdir apk-jar && cd apk-jar
-        wget -qq $DOWNLOAD_URL
-        mkdir temp && cd temp
-        wget -qq https://github.com/nekoaoxiang/build/releases/latest/download/bilibili.zip
-        unzip bilibili.zip && rm -rf bilibili.zip
-        cd ..
-        java -jar APKEditor*.jar m -i ./temp
-        mkdir ../build && mv *.apk ../build/bilibili.apk
-
     - name: Build bilibili
       run: |
         cd build
+        wget -qq https://github.com/nekoaoxiang/build/releases/latest/download/bilibili.apk
         wget -qq https://github.com/zjns/revanced-cli/releases/latest/download/revanced-cli.jar
         java -jar revanced-cli.jar patch --merge ../BiliRoamingX-integrations*.apk --patch-bundle ../BiliRoamingX-patches*.jar --signing-levels 2,3 bilibili.apk
 
