@@ -89,12 +89,15 @@ jobs:
     - name: Prepare apk
       run: |
         wget -qq https://github.com/nekoaoxiang/build/releases/latest/download/bilibili.apk
+        sudo unzip bilibili.apk -d temp_dir
+        cd temp_dir
+        sudo zip -r ../bilibili-fixed.apk *
 
     - name: Build bilibili
       run: |
         mkdir build && cd build
         wget -qq https://github.com/zjns/revanced-cli/releases/latest/download/revanced-cli.jar
-        java -jar revanced-cli.jar patch --merge ../BiliRoamingX-integrations*.apk --patch-bundle ../BiliRoamingX-patches*.jar --signing-levels 3 ../bilibili.apk
+        java -jar revanced-cli.jar patch --merge ../BiliRoamingX-integrations*.apk --patch-bundle ../BiliRoamingX-patches*.jar --signing-levels 3 ../bilibili-fixed.apk
 
     - name: Upload bilibili
       uses: actions/upload-artifact@v4
