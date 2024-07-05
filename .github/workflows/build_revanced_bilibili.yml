@@ -86,12 +86,17 @@ jobs:
         DOWNLOAD_URL=$(echo "$RELEASE_DATA" | grep '"browser_download_url":' | grep 'BiliRoamingX-patches' | head -n 1 | awk -F '"' '{print $4}')
         wget -qq $DOWNLOAD_URL
 
+    - name: Prepare apk
+      run:|
+        sudo apt install android-sdk
+        wget -qq https://github.com/nekoaoxiang/build/releases/latest/download/bilibili.apk
+        mkdir build
+        wget -qq https://github.com/nekoaoxiang/build/releases/latest/my-release-key.jks
+        apksigner sign --ks my-release-key.jks --ks-pass pass:12345678 --key-pass pass:12345678 --out ./build/bilibili.apk ./bilibili.apk
+
     - name: Build bilibili
       run: |
-        wget -qq https://github.com/nekoaoxiang/build/releases/latest/download/bilibili.apk
-        mkdir build && cd build
-        apksigner sign --ks my-release-key.jks --ks-pass pass:12345678 --key-pass pass:12345678 --out bilibili.apk ../bilibili.apk
-        wget -qq https://github.com/nekoaoxiang/build/releases/latest/my-release-key.jks
+        cd build
         wget -qq https://github.com/zjns/revanced-cli/releases/latest/download/revanced-cli.jar
         java -jar revanced-cli.jar patch --merge ../BiliRoamingX-integrations*.apk --patch-bundle ../BiliRoamingX-patches*.jar --signing-levels 2,3 bilibili.apk
 
