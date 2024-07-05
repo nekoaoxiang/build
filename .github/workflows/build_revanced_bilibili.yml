@@ -14,7 +14,7 @@ jobs:
       uses: actions/setup-java@v4
       with:
         java-version: '22'
-        distribution: 'oracle'
+        distribution: 'temurin'
 
     - name: Check if latest release commit matches latest main commit
       id: check_commits
@@ -88,23 +88,13 @@ jobs:
 
     - name: Prepare apk
       run: |
-        sudo apt install android-sdk
         wget -qq https://github.com/nekoaoxiang/build/releases/latest/download/bilibili.apk
-        mkdir build
-        wget -qq https://github.com/nekoaoxiang/build/releases/latest/download/my-release-key.jks
-        apksigner sign --ks my-release-key.jks --ks-pass pass:12345678 --key-pass pass:12345678 --out ./bilibili-signed.apk ./bilibili.apk
-
-    - name: check apk
-      run: |
-        sudo unzip bilibili-signed.apk -d temp_dir
-        cd temp_dir
-        sudo zip -r ../build/bilibili.apk *
 
     - name: Build bilibili
       run: |
-        cd build
+        mkdir build && cd build
         wget -qq https://github.com/zjns/revanced-cli/releases/latest/download/revanced-cli.jar
-        java -jar revanced-cli.jar patch --merge ../BiliRoamingX-integrations*.apk --patch-bundle ../BiliRoamingX-patches*.jar --signing-levels 3 bilibili.apk
+        java -jar revanced-cli.jar patch --merge ../BiliRoamingX-integrations*.apk --patch-bundle ../BiliRoamingX-patches*.jar --signing-levels 3 ../bilibili.apk
 
     - name: Upload bilibili
       uses: actions/upload-artifact@v4
