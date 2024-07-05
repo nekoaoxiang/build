@@ -46,6 +46,17 @@ jobs:
         path: BiliRoamingX
         fetch-depth: 0
 
+    - name: Cache gradle
+      if: steps.check_commits.outputs.commits_match == 'false'
+      uses: actions/cache@v4
+      with:
+        path: |
+          ~/BiliRoamingX/.gradle/caches
+          ~/BiliRoamingX/.gradle/wrapper
+        key: ${{ runner.os }}-gradle-${{ hashFiles('BiliRoamingX/**/*.gradle*', 'BiliRoamingX/**/gradle-wrapper.properties', 'BiliRoamingX/gradle/*.versions.toml') }}
+        restore-keys: |
+          ${{ runner.os }}-gradle-
+
     - name: Retrieve version
       if: steps.check_commits.outputs.commits_match == 'false'
       run: |
@@ -61,7 +72,7 @@ jobs:
         GITHUB_TOKEN: ${{ github.token }}
       run: |
         cd BiliRoamingX
-        ./gradlew --no-daemon -Pversion=$VERSION dist
+        ./gradlew --no-daemon -Dorg.gradle.jvmargs=-Xmx2g -Pversion=$VERSION dist
         mv ./BiliRoamingX/build/BiliRoamingX-* .
 
     - name: Download BiliRoamingX
