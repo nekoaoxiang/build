@@ -89,9 +89,9 @@ jobs:
     - name: check apk
       run: |
         wget -qq https://github.com/nekoaoxiang/build/releases/latest/download/bilibili.apk
-        unzip bilibili-signed.apk -d temp_dir
+        sudo unzip bilibili.apk -d temp_dir
         mkdir build && cd temp_dir
-        zip -r ../build/bilibili.apk *
+        sudo zip -r ../build/bilibili.apk *
 
     - name: Build bilibili
       run: |
