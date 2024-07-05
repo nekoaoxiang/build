@@ -38,7 +38,7 @@ jobs:
         fi
 
     - name: Checkout repository
-      if: steps.check_commits.outputs.commits_match == 'false'
+      if: env.commits_match == 'false'
       uses: actions/checkout@v4
       with:
         repository: BiliRoamingX/BiliRoamingX
@@ -47,7 +47,7 @@ jobs:
         fetch-depth: 0
 
     - name: Cache gradle
-      if: steps.check_commits.outputs.commits_match == 'false'
+      if: env.commits_match == 'false'
       uses: actions/cache@v4
       with:
         path: |
@@ -58,7 +58,7 @@ jobs:
           ${{ runner.os }}-gradle-
 
     - name: Retrieve version
-      if: steps.check_commits.outputs.commits_match == 'false'
+      if: env.commits_match == 'false'
       run: |
         cd BiliRoamingX
         version=`awk -F "=" '$1 == "version" {print $2}' gradle.properties`
@@ -67,7 +67,7 @@ jobs:
         echo "VERSION=$version" >> $GITHUB_ENV
 
     - name: Build BiliRoamingX
-      if: steps.check_commits.outputs.commits_match == 'false'
+      if: env.commits_match == 'false'
       env:
         GITHUB_TOKEN: ${{ github.token }}
       run: |
@@ -76,7 +76,7 @@ jobs:
         mv ./BiliRoamingX/build/BiliRoamingX-* .
 
     - name: Download BiliRoamingX
-      if: steps.check_commits.outputs.commits_match == 'true'
+      if: env.commits_match == 'true'
       run: |
         RELEASE_DATA=$(curl -s "https://api.github.com/repos/$USERNAME/$REPO/releases/latest")
 
