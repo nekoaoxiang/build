@@ -19,8 +19,11 @@ jobs:
     - name: Check if latest release commit matches latest main commit
       id: check_commits
       run: |
-        # 获取最新Release的commit hash
-        LATEST_RELEASE_COMMIT=$(curl -s "https://api.github.com/repos/$USERNAME/$REPO/releases/latest" | grep '"target_commitish":' | head -n 1 | awk -F '"' '{print $4}')
+        # 获取最新Release的target_commitish（分支或标签）
+        TARGET_COMMITISH=$(curl -s "https://api.github.com/repos/$USERNAME/$REPO/releases/latest" | grep '"target_commitish":' | head -n 1 | awk -F '"' '{print $4}')
+        
+        # 获取target_commitish对应的commit hash
+        LATEST_RELEASE_COMMIT=$(curl -s "https://api.github.com/repos/$USERNAME/$REPO/commits/$TARGET_COMMITISH" | grep '"sha":' | head -n 1 | awk -F '"' '{print $4}')
 
         # 获取主分支最新的commit hash
         LATEST_MASTER_COMMIT=$(curl -s "https://api.github.com/repos/$USERNAME/$REPO/commits/main" | grep '"sha":' | head -n 1 | awk -F '"' '{print $4}')
