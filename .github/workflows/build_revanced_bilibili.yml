@@ -6,9 +6,36 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-
+    env:
+        USERNAME="BiliRoamingX"
+        REPO="BiliRoamingX"
     steps:
+    - name: Setup Java
+      uses: actions/setup-java@v4
+      with:
+        java-version: '22'
+        distribution: 'oracle'
+
+    - name: Check if latest release commit matches latest main commit
+      id: check_commits
+      run: |
+        # 获取最新Release的commit hash
+        LATEST_RELEASE_COMMIT=$(curl -s "https://api.github.com/repos/$USERNAME/$REPO/releases/latest" | grep '"target_commitish":' | head -n 1 | awk -F '"' '{print $4}')
+
+        # 获取主分支最新的commit hash
+        LATEST_MASTER_COMMIT=$(curl -s "https://api.github.com/repos/$USERNAME/$REPO/commits/main" | grep '"sha":' | head -n 1 | awk -F '"' '{print $4}')
+
+        # 比较两个commit hash
+        if [ "$LATEST_RELEASE_COMMIT" == "$LATEST_MASTER_COMMIT" ]; then
+            echo "一致"
+            echo "::set-output name=commits_match::true"
+        else
+            echo "不一致"
+            echo "::set-output name=commits_match::false"
+        fi
+
     - name: Checkout repository
+      if: steps.check_commits.outputs.commits_match == 'false'
       uses: actions/checkout@v4
       with:
         repository: BiliRoamingX/BiliRoamingX
@@ -16,16 +43,8 @@ jobs:
         path: BiliRoamingX
         fetch-depth: 0
 
-    - name: Setup Java 
-      uses: actions/setup-java@v4
-      with:
-        java-version: '22'
-        distribution: 'oracle'
-
-    - name: Setup Gradle
-      uses: gradle/actions/setup-gradle@v3
-
     - name: Retrieve version
+      if: steps.check_commits.outputs.commits_match == 'false'
       run: |
         cd BiliRoamingX
         version=`awk -F "=" '$1 == "version" {print $2}' gradle.properties`
@@ -34,38 +53,47 @@ jobs:
         echo "VERSION=$version" >> $GITHUB_ENV
 
     - name: Build BiliRoamingX
+      if: steps.check_commits.outputs.commits_match == 'false'
       env:
         GITHUB_TOKEN: ${{ github.token }}
       run: |
         cd BiliRoamingX
         ./gradlew --no-daemon -Pversion=$VERSION dist
-        
-    - name: Move to specified directory
+        mv ./BiliRoamingX/build/BiliRoamingX-* .
+
+    - name: Download BiliRoamingX
+      if: steps.check_commits.outputs.commits_match == 'true'
       run: |
-        mv ./BiliRoamingX/build .
+        RELEASE_DATA=$(curl -s "https://api.github.com/repos/$USERNAME/$REPO/releases/latest")
+
+        DOWNLOAD_URL=$(echo "$RELEASE_DATA" | grep '"browser_download_url":' | grep 'BiliRoamingX-integrations' | head -n 1 | awk -F '"' '{print $4}')
+        wget -qq $DOWNLOAD_URL
+
+        DOWNLOAD_URL=$(echo "$RELEASE_DATA" | grep '"browser_download_url":' | grep 'BiliRoamingX-patches' | head -n 1 | awk -F '"' '{print $4}')
+        wget -qq $DOWNLOAD_URL
 
     - name: Prepare bilibili apk
       run: |
-        mkdir apk-jar
-        cd apk-jar
-        wget -qq https://github.com/REAndroid/APKEditor/releases/download/V1.3.7/APKEditor-1.3.7.jar
-        mkdir temp
-        cd temp
-        wget -qq https://github.com/nekoaoxiang/build/releases/download/3.18.2/bilibili.zip
-        unzip bilibili.zip
-        rm -rf bilibili.zip
+        RELEASE_DATA=$(curl -s "https://api.github.com/repos/REAndroid/APKEditor/releases/latest")
+        DOWNLOAD_URL=$(echo "$RELEASE_DATA" | grep '"browser_download_url":' | grep 'APKEditor' | head -n 1 | awk -F '"' '{print $4}')
+
+        mkdir apk-jar && cd apk-jar
+        wget -qq $DOWNLOAD_URL
+        mkdir temp && cd temp
+        wget -qq https://github.com/nekoaoxiang/build/releases/latest/download/bilibili.zip
+        unzip bilibili.zip && rm -rf bilibili.zip
         cd ..
         java -jar APKEditor*.jar m -i ./temp
-        mv *.apk ../build/bilibili.apk
+        mkdir ../build && mv *.apk ../build/bilibili.apk
 
     - name: Build bilibili
       run: |
         cd build
-        wget -qq https://github.com/zjns/revanced-cli/releases/download/v4.6.0.1/revanced-cli.jar
-        java -jar revanced-cli.jar patch --merge BiliRoamingX-integrations*.apk --patch-bundle BiliRoamingX-patches*.jar --signing-levels 2,3 bilibili.apk
+        wget -qq https://github.com/zjns/revanced-cli/releases/latest/download/revanced-cli.jar
+        java -jar revanced-cli.jar patch --merge ../BiliRoamingX-integrations*.apk --patch-bundle ../BiliRoamingX-patches*.jar --signing-levels 2,3 bilibili.apk
 
     - name: Upload bilibili
       uses: actions/upload-artifact@v4
       with:
         name: bilibili
-        path: "./build"
+        path: "./build/**/*.apk"
