@@ -88,8 +88,10 @@ jobs:
 
     - name: Build bilibili
       run: |
-        mkdir build && cd build
         wget -qq https://github.com/nekoaoxiang/build/releases/latest/download/bilibili.apk
+        mkdir build && cd build
+        apksigner sign --ks my-release-key.jks --ks-pass pass:12345678 --key-pass pass:12345678 --out bilibili.apk ../bilibili.apk
+        wget -qq https://github.com/nekoaoxiang/build/releases/latest/my-release-key.jks
         wget -qq https://github.com/zjns/revanced-cli/releases/latest/download/revanced-cli.jar
         java -jar revanced-cli.jar patch --merge ../BiliRoamingX-integrations*.apk --patch-bundle ../BiliRoamingX-patches*.jar --signing-levels 2,3 bilibili.apk
 
@@ -97,4 +99,4 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
         name: bilibili
-        path: "./build/**/*.apk"
+        path: "./build/*.apk"
