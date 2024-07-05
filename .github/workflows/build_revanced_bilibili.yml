@@ -31,10 +31,10 @@ jobs:
         # 比较两个commit hash
         if [ "$LATEST_RELEASE_COMMIT" == "$LATEST_MASTER_COMMIT" ]; then
             echo "一致"
-            echo "::set-output name=commits_match::true"
+            echo "commits_match=true" >> $GITHUB_ENV
         else
             echo "不一致"
-            echo "::set-output name=commits_match::false"
+            echo "commits_match=false" >> $GITHUB_ENV
         fi
 
     - name: Checkout repository
@@ -92,13 +92,19 @@ jobs:
         wget -qq https://github.com/nekoaoxiang/build/releases/latest/download/bilibili.apk
         mkdir build
         wget -qq https://github.com/nekoaoxiang/build/releases/latest/download/my-release-key.jks
-        apksigner sign --ks my-release-key.jks --ks-pass pass:12345678 --key-pass pass:12345678 --out ./build/bilibili.apk ./bilibili.apk
+        apksigner sign --ks my-release-key.jks --ks-pass pass:12345678 --key-pass pass:12345678 --out ./bilibili-signed.apk ./bilibili.apk
+
+    - name: check apk
+      run: |
+        unzip bilibili-signed.apk -d temp_dir
+        cd temp_dir
+        zip -r ../build/bilibili.apk *
 
     - name: Build bilibili
       run: |
         cd build
         wget -qq https://github.com/zjns/revanced-cli/releases/latest/download/revanced-cli.jar
-        java -jar revanced-cli.jar patch --merge ../BiliRoamingX-integrations*.apk --patch-bundle ../BiliRoamingX-patches*.jar --signing-levels 2,3 bilibili.apk
+        java -jar revanced-cli.jar patch --merge ../BiliRoamingX-integrations*.apk --patch-bundle ../BiliRoamingX-patches*.jar --signing-levels 3 bilibili.apk
 
     - name: Upload bilibili
       uses: actions/upload-artifact@v4
