@@ -1,0 +1,35 @@
+name: Build lawnchair
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build-release-apk:
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          repository: LawnchairLauncher/lawnchair
+          submodules: true
+      - uses: actions/setup-java@v4
+        with:
+          distribution: 'zulu'
+          java-version: 21
+      - uses: gradle/actions/setup-gradle@v3
+        with:
+          gradle-home-cache-cleanup: true
+      - name: Write sign info
+        run: |
+          wget -O ${{ github.workspace }}/release.keystore https://github.com/nekoaoxiang/sing-box/raw/main/dsb/release.keystore
+          echo storePassword='12345678' >> keystore.properties
+          echo keyAlias='aoxiang1221' >> keystore.properties
+          echo keyPassword='12345678' >> keystore.properties
+          echo storeFile='${{ github.workspace }}/release.keystore' >> keystore.properties
+      - name: Build release APK
+        run: ./gradlew assembleLawnWithQuickstepGithubRelease assembleLawnWithQuickstepMarketRelease
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: Debug APK
+          path: build/outputs/apk/**/*.apk
