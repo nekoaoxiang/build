@@ -19,21 +19,19 @@ jobs:
     - name: Check if latest release commit matches latest main commit
       id: check_commits
       run: |
-        # 获取最新Release的target_commitish（分支或标签）
-        TARGET_COMMITISH=$(curl -s "https://api.github.com/repos/$USERNAME/$REPO/releases/latest" | grep '"target_commitish":' | head -n 1 | awk -F '"' '{print $4}')
+        TAG_NAME=$(curl -s "https://api.github.com/repos/$USERNAME/$REPO/releases/latest" | grep '"tag_name":' | head -n 1 | awk -F '"' '{print $4}')
         
-        # 获取target_commitish对应的commit hash
-        LATEST_RELEASE_COMMIT=$(curl -s "https://api.github.com/repos/$USERNAME/$REPO/commits/$TARGET_COMMITISH" | grep '"sha":' | head -n 1 | awk -F '"' '{print $4}')
-
-        # 获取主分支最新的commit hash
-        LATEST_MASTER_COMMIT=$(curl -s "https://api.github.com/repos/$USERNAME/$REPO/commits/main" | grep '"sha":' | head -n 1 | awk -F '"' '{print $4}')
-
-        # 比较两个commit hash
-        if [ "$LATEST_RELEASE_COMMIT" == "$LATEST_MASTER_COMMIT" ]; then
-            echo "一致"
+        LATEST_RELEASE_COMMIT=$(curl -s "https://api.github.com/repos/$USERNAME/$REPO/commits/$TAG_NAME" | grep '"sha":' | head -n 1 | awk -F '"' '{print $4}')
+        
+        LATEST_COMMIT=$(curl -s "https://api.github.com/repos/$USERNAME/$REPO/commits/main" | grep '"sha":' | head -n 1 | awk -F '"' '{print $4}')
+        
+        if [ "$LATEST_RELEASE_COMMIT" == "$LATEST_COMMIT" ]; then
+            echo "hash 一致, 为 $LATEST_RELEASE_COMMIT"
             echo "commits_match=true" >> $GITHUB_ENV
         else
-            echo "不一致"
+            echo "hash 不一致"
+            echo "最新发行版为 $LATEST_RELEASE_COMMIT"
+            echo "最新提交为 $LATEST_COMMIT"
             echo "commits_match=false" >> $GITHUB_ENV
         fi
 
