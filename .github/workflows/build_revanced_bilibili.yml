@@ -13,7 +13,7 @@ jobs:
     - name: Setup Java
       uses: actions/setup-java@v4
       with:
-        java-version: '22'
+        java-version: '17'
         distribution: 'temurin'
 
     - name: Check if latest release commit matches latest main commit
@@ -43,6 +43,7 @@ jobs:
         ref: main
         path: BiliRoamingX
         fetch-depth: 0
+        submodules: 'recursive'
 
     - name: Cache gradle
       if: env.commits_match == 'false'
@@ -71,7 +72,7 @@ jobs:
       run: |
         cd BiliRoamingX
         ./gradlew --no-daemon -Dorg.gradle.jvmargs=-Xmx2g -Pversion=$VERSION dist
-        mv ./BiliRoamingX/build/BiliRoamingX-* .
+        mv ./build/BiliRoamingX-* ..
 
     - name: Download BiliRoamingX
       if: env.commits_match == 'true'
